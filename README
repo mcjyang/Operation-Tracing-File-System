@@ -1,0 +1,99 @@
+CSE 506 - Operating Systems Assignment 2
+Author  : Meng-Chieh Yang
+ID      : 110452591
+Date    : 11/01/16
+
+
+* File:
+/usr/src/hw2-mengyang/fs/trfs/
+- record.h: defined record structure, operation message, MACRO for checking bitmap.
+- trctl.h : defined TRCTL magic number, defined action name (ALL, NONE, BITMAP, RETRIEVE)
+- trfs.h  : added SUPER_MAGIC Number, add new structures.
+- main.c  : modified to accept mounting option.
+- lookup.c: modified function name.
+- mmap.c  : modified function name.
+- super.c : modified trfs_put_super.
+- dentry.c: modified function name.
+- inode.c : modified function for tracing.
+- file.c  : added trfs_record function for recording operations, modified function for tracing.
+- install.sh: provide a quickier way to load and mount our file system.
+- remove.sh : provide a quickier way to unload and umount our file system.
+
+/usr/src/hw2-mengyang/hw2/
+- record.h : same as "record.h" at hw2-mengyang/fs/trfs/.
+- trctl.h  : same as "trctl.h" at hw2-mengyang/fs/trfs/.
+- trctl.c  : user level application for bitmap.
+- treplay.c: only implemented reading binary data part.
+- test/*   : here are some test files you can use to test the file system.
+
+
+* Mount:
+At /usr/src/hw2-mengyang/fs/trfs/
+two methods: 1) use install.sh 2) step-by-step
+1) Use install.sh:
+- sh install.sh
+
+2) Step-by-step:
+- make
+- insmod trfs.ko
+- mount your system at some /lower/path/
+- mount -t trfs -o tfile=/output/file/path /lower/path/ /mnt/trfs/
+in our example, we use tfile=/tmp/tfile1.txt as our output path(should be an empty file).
+
+
+* Umount:
+At /usr/src/hw2-mengyang/fs/trfs/
+two methods: 1) use remove.sh 2) step-by-step
+1) Use remove.sh:
+- sh remove.sh
+
+2) Step-by-step
+- umount /mnt/trfs/
+- umount /lower/path/
+- rmmod trfs
+
+
+* Usage:
+1) When at /usr/src/hw2-mengyang/hw2/:
+   first use make to make .o file
+   for controling what operations you want to trace, use
+   
+   ./trctl [CMD] /mnt/trfs 
+   
+   where CMD can be
+   - none: tracing nothing (0x00000000)
+   - all: tracing everything (0xffffffff)
+   - 0xNNNNNNNN: tracing some specific operations
+   To be specific:
+   - 0x00000001: only open
+   - 0x00000002: only close
+   - 0x00000004: only read
+   - 0x00000008: only write
+   - 0x00000010: only create
+   - 0x00000020: only remove
+   can be tracing, or you can use any combination like 0x00000011 to record open and create.
+
+   if use
+
+   ./trctl /mnt/trfs 
+   
+   then if will retrieve the current bitmap and show you in hex format.
+   (The default of bitmap is 0xffffffff, which is to record everything.)
+
+2) trfs will trace every desired operations in mounting path(/mnt/trfs in our example), and
+   write these records into tfile path (/tmp/tfile1.txt in our example) in binary format.
+
+3) to test trfs, you can use the files in /usr/src/hw2-mengyang/hw2/test/ and use
+	
+   sh test1.sh
+
+   and use dmesg for checking message.
+
+4) wehn at /usr/src/hw2-mengyang/hw2/:
+   one can use 
+
+   ./treplay [-ns] /tmp/tfile1.txt
+
+   to show the record data (binary format)
+
+
